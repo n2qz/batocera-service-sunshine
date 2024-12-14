@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# sunshine service script for Batocera
+# maximumentropy/n2qz 20241214
+
+# To install, save the script as /userdata/system/services/sunshine
+# and then enable the service toggle in ES:
+# SYSTEM SETTINGS > SERVICES > SUNSHINE
+
+# This script is released under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.
+# You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.
+#
+# To view a copy of the CC0 license, visit https://creativecommons.org/publicdomain/zero/1.0/
+
+# The sunshine.AppImage will store persistent state in a folder
+# relative to the HOME directory.  At boot time, HOME will default to
+# / while the correct setting (as seen when logged in) is
+# /userdata/system.  To ensure persistence, set HOME correctly here.
+
+export HOME=/userdata/system
+
+# Set variables for the URL to retrieve the appimage, and various
+# convenience variables.
+#
+# Use prerelease version for now, as latest release 0.23.1 is missing
+# required library libthai.so.0
+version=2024.1214.152703
+url="https://github.com/LizardByte/Sunshine/releases/download/v${version}/sunshine.AppImage"
+appname=sunshine
+
+bindir="${HOME}/bin"
+logdir="${HOME}/logs"
+appimage="${appname}.${version}.AppImage"
+fullpath="${bindir}/${appimage}"
+service="$(basename -- "${BASH_SOURCE}")"
+logfile="${logdir}/${service}.log"
+
+# Append all output to the log file.
+exec &> >(tee -a "$logfile")
+echo "$(date): ${1} service ${service}"
+
+case "$1" in
+    start)
+        # Code in here will be executed on boot.
+        # Create a new log file and direct all output to it
+        exec &> >(tee "$logfile")
+        echo "$(date): ${1} service ${service}"
+        # If the appimage doesn't exist ...
+        if [ ! -x "${fullpath}" ]
+        then
+            # ... then create a folder to store the appimage, and download it.
+            mkdir -p "${bindir}"
+            echo "Downloading ${fullpath}"
+            curl --location --remove-on-error --remote-time --output "${fullpath}" "${url}"
+            status=$?
+            # If curl indicates an error status, or the downloaded file is missing or empty ...
+            if [ "${status}" -ne 0 -o  ! -f "${fullpath}" -o ! -s "${fullpath}" ]
+            then
+                # ... then remove any partial download, and abort.
+                if [ "${status}" -eq 0 ]
+                then
+                  # curl status indicates the download succeeded, but file is missing or empty.
+                  # Set our exit code to the curl exit code corresponding to "write error"
+                  status=23
+                fi
+                echo "Download of ${fullpath} from ${url} failed with status ${status}, aborting."
+                rm -f "${fullpath}"
+                exit $status
+            fi
+            # Download succeeded, set the appimage mode as executable.
+            chmod +x "${fullpath}"
+        fi
+        # Set primary DISPLAY and start the appimage in the background.
+        DISPLAY=:0.0 "${fullpath}" &
+        ;;
+    stop)
+        # Code in here will be executed on shutdown.
+        # Kill the running appimage.
+        killall "${appname}"
+        ;;
+    restart|reload)
+        # Code in here will executed when restart parameter is passed by the sysadmin.
+        # Ask for service restart, this will call back to our stop and start methods.
+        batocera-services restart "${service}"
+        ;;
+    status)
+        # Code in here will executed when status parameter is passed by the sysadmin.
+        if killall -0 "${appname}"
+        then
+            echo "${service} is running"
+            exit 0
+        else
+            echo "${service} is stopped"
+            exit 1
+        fi
+        ;;
+    uninstall)
+        # Code in here will executed when unistall parameter is passed by the sysadmin.
+        # Stop and disable the service, and remove the appimage.
+        batocera-services stop "${service}"
+        batocera-services disable "${service}"
+        rm -f "${fullpath}"
+        ;;
+    *)
+        # Code in here will be executed in all other conditions.
+        echo "Usage: $0 {start|stop|restart|status|uninstall}"
+        ;;
+esac
+ 
+exit $?
