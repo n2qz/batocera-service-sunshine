@@ -38,12 +38,17 @@ Primary design goals for this project are:
 
 ## How do I use it?
 
-- Download the `sunshine` service script and install it into the
-  `/userdata/system/services/` folder on your Batocera system.  If
-  you're connecting to your Batocera system via network sharing, start
-  at the network share and then navigate to `system` and then
-  `services`.  If the `services` folder doesn't already exist there,
-  create it.
+- Download the `sunshine` service
+  [script](https://raw.githubusercontent.com/n2qz/batocera-service-sunshine/refs/heads/master/sunshine)
+  and install it into the `/userdata/system/services/` folder on your
+  Batocera system.  If you're connecting to your Batocera system via
+  network sharing, start at the network share and then navigate to
+  `system` and then `services`.  If the `services` folder doesn't
+  already exist there, create it.  Here are the commands to make the
+  folder and download directly on Batocera:  
+  ```shell
+  mkdir -p /userdata/system/services && curl -L -o /userdata/system/services/sunshine https://raw.githubusercontent.com/n2qz/batocera-service-sunshine/refs/heads/master/sunshine
+  ```  
 - Read the script and try to understand what it's doing as well as how
   it's doing it.  Don't run random scripts that you don't understand
   from random Internet strangers who you have no reason to trust.
