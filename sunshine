@@ -24,9 +24,18 @@ export HOME=/userdata/system
 #
 # Use prerelease version for now, as latest release 0.23.1 is missing
 # required library libthai.so.0
-version=2024.1214.152703
-url="https://github.com/LizardByte/Sunshine/releases/download/v${version}/sunshine.AppImage"
+version=prerelease
 appname=sunshine
+
+if [ "${version}" = "prerelease" ]
+then
+    url=$(curl -s https://api.github.com/repos/LizardByte/Sunshine/releases | jq -r '.[0].assets[] | select(.name == "sunshine.AppImage") | .browser_download_url')
+elif [ "${version}" = "release" ]
+then
+    url=$(curl -s https://api.github.com/repos/LizardByte/Sunshine/releases/latest | jq -r '.assets[] | select(.name == "sunshine.AppImage") | .browser_download_url')
+else
+    url="https://github.com/LizardByte/Sunshine/releases/download/v${version}/sunshine.AppImage"
+fi
 
 bindir="${HOME}/bin"
 logdir="${HOME}/logs"
@@ -51,7 +60,7 @@ case "$1" in
             # ... then create a folder to store the appimage, and download it.
             mkdir -p "${bindir}"
             echo "Downloading ${fullpath}"
-            curl --location --remove-on-error --remote-time --output "${fullpath}" "${url}"
+            curl --location --fail --remove-on-error --remote-time --output "${fullpath}" "${url}"
             status=$?
             # If curl indicates an error status, or the downloaded file is missing or empty ...
             if [ "${status}" -ne 0 -o  ! -f "${fullpath}" -o ! -s "${fullpath}" ]
