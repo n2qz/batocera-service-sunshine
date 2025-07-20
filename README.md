@@ -60,7 +60,7 @@ Primary design goals for this project are:
 - On the remote PC, navigate to the setup page for the newly installed
   Sunshine.  If you haven't changed the hostname for your Batocera
   from the default, you'll find it at https://batocera.local:47990/
-- Follow the [Sunshine setup
-  instructions](https://docs.lizardbyte.dev/projects/sunshine/en/latest/about/setup.html#usage:~:text=Configure%20Sunshine%20in%20the%20web%20ui)
-  starting at step 2, to configure Sunshine in the web UI.
+- Follow the [Sunshine configuration
+  instructions](https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2getting__started.html#configuration),
+  to configure Sunshine in the web UI.
 
